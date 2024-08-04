@@ -12,7 +12,7 @@ const updateUser = require('../../../utils/user/updateUser');
 // @route           PUT /api/user/update
 // @access          Members
 const editProfile = expressAsyncHandler(async (req, res, next) => {
-    const { email, password, access, extra, ...rest } = req.body;
+    const { email, password, access, github, linkedin, extra, ...rest } = req.body;
 
     try {
 
@@ -26,7 +26,7 @@ const editProfile = expressAsyncHandler(async (req, res, next) => {
         rest.extra = updatedExtra
 
         // Update the user details
-        const updatedUser = await updateUser({email : req.user.email})
+        const updatedUser = await updateUser({email : req.user.email}, rest)
 
         // Remove sensitive information from updatedUser
         delete updatedUser.password;

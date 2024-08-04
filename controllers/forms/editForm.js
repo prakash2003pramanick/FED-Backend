@@ -8,7 +8,7 @@ const deleteImage = require('../../utils/image/deleteImage'); // Assuming a dele
 // @route           PUT /api/form/editForm/:id
 // @access          Admins
 const editForm = async (req, res, next) => {
-    const formId = req.body.id;
+    const formId = req.params.id;
     const { info, sections, sectionsToDelete } = req.body;
 
     try {

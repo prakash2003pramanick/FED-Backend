@@ -1,0 +1,25 @@
+model team {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+
+  teamId        String        @unique
+  teamName      String
+  user          user          @relation(fields: [userId], references: [id])
+  userId        String        @map("userId") @db.ObjectId
+
+  form          form          @relation(fields: [formId], references: [id])
+  formId        String        @map("formId") @db.ObjectId
+
+  participants  Participant[]
+
+  @@map("team")
+}
+
+model Participant {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  user      user             @relation(fields: [userId], references: [id])
+  userId    String           @map("userId") @db.ObjectId
+  type      Int              @default(0) // 0 for leader, 1 for member
+  formId    String           @map("formId") @db.ObjectId
+
+  @@map("participants")
+}

@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const { ApiError } = require('../error/ApiError');
 
 const updateUser = async (key, data) => {
-    console.log("Updating existing user");
+    console.log("Updating existing user", key, data);
 
     let newFormIds = null;
 
@@ -12,12 +12,12 @@ const updateUser = async (key, data) => {
         ...data
     };
 
-    if (data.forms) {
-        newFormIds = data.forms;
-        delete data.forms;
+    if (data.regForm) {
+        newFormIds = data.regForm;
+        delete data.regForm;
         updateData = {
             ...updateData,
-            forms: {
+            regForm: {
                 push: newFormIds
             }
         };
@@ -26,7 +26,7 @@ const updateUser = async (key, data) => {
     // Update the user
     const user = await prisma.user.update({
         where: key,
-        data: updateData, ...key,
+        data: updateData
     });
 
     console.log(`Updated user with ${JSON.stringify(key)} successfully!`);

@@ -3,20 +3,24 @@ const prisma = new PrismaClient();
 const { ApiError } = require('../../utils/error/ApiError');
 const uploadimage = require('../../utils/image/uploadImage');
 
-// @description     Add forms 
+// @description     Add regForm 
 // @route           POST /api/form/addForm
 // @access          Admins
 const addForm = async (req, res, next) => {
     try {
-        console.log("Incoming request body:", req.body);
 
         // Handle file upload if applicable
         if (req.file) {
-            const result = await uploadimage(req.file.path);
+            console.log("uploding file from disk path : ", req.file.path)
+            const result = await uploadimage(req.file.path,"FormImages");
             console.log("Result from cloudinary:", result);
             if (result) {
                 req.body.info.eventImg = result.secure_url; // Assuming this modifies req.body.info
             }
+        }
+        else{
+            console.log("image not found")
+            req.body.info.eventImg = null;
         }
 
         // Parse JSON strings from req.body.info and req.body.sections
@@ -35,8 +39,7 @@ const addForm = async (req, res, next) => {
             data: {
                 id: req.body.id,
                 info: info,
-                sections: sections,
-                // Add other fields as needed
+                sections: sections
             },
         });
 

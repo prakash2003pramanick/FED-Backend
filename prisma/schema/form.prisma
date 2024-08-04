@@ -1,9 +1,8 @@
 model form {
-  id          String       @id @default(uuid()) @map("_id")
-  info        Json
-  sections    Json[]
-  extra       Json?
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  info     Json
+  sections Json[]
+  extra    Json?
 
-  userForms   formRegistration[]
-
+  userForms formRegistration[]
 }

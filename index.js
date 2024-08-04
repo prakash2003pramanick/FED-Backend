@@ -18,15 +18,43 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
-app.use(cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true
-}));
+// app.options('*', cors()); 
+app.use(cors("*"))
+// app.use(cors({
+//     origin: '*',
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization','multipart/form-data'],
+// }));
+// // app.use((req, res, next) => {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+//     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type,Authorization, multipart/form-data');
+//     res.setHeader('Access-Control-Allow-Credentials', true);
+//     next();
+// });
+// app.use((req, res, next) => {
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//         "Access-Control-Allow-Headers",
+//         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//     );
+
+//     next();
+// });
+
+// Radio Button
+// > Create Team
+// > Join Team
+// Team Name - 
+// Enter Team Code -
+// Enter Team Name
+// Enter Team Code
 
 app.use(cookieSession({
     name: "session",
     keys: ["somesessionkey"],
-    maxAge: 24*60*60*100,
+    maxAge: 24 * 60 * 60 * 100,
 })
 );
 

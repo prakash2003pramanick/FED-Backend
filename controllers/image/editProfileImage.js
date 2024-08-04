@@ -16,23 +16,30 @@ const editProfileImage = expressAsyncHandler(async (req, res, next) => {
     }
 
     try {
+        console.log("user is ", req.user)
+
+        console.log("Existing image : ", req.user.img)
 
         console.log("uploading file -", req.file.path)
 
         //delete the existing image
         if(req.user.img){
-            await deleteImage(req.user.img)
+            try {
+                deleteImage(req.user.img, 'MemberImages')
+            } catch (error) {
+                console.log("Error deleting image", error);
+            }
+            
         }
-
-        const result = await uploadimage(req.file.path)
+        // Upload the new image to cloudinary
+        const result = await uploadimage(req.file.path, 'MemberImages')
         console.log("result from cloudinary : ", result)
 
         res.status(200).json({
             success: true,
-            data: result,
+            url: result.secure_url,
             message: "Image uploaded successfully"
         });
-
         const user = updateUser({email : req.user.email},{img : result.secure_url})
     } catch (err) {
         return next(new ApiError(500, "Error while uploading image", err))

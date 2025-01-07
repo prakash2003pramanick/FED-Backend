@@ -7,9 +7,11 @@ const { imageUpload } = require('../../../middleware/upload');
 const { editProfileImage } = require('../../../controllers/image/editProfileImage');
 const { fetchProfileRules } = require('../../../middleware/validator/userValidator');
 const { validate } = require('../../../middleware/validationMiddleware');
+const { generateCertificate } = require('../../../controllers/certificate/generateCertificate');
 
 // Add validation, token verification, and isMemberOrAdmin
 router.get("/fetchAccessTypes", fetchAccessTypes)
+router.post('/getCertificate',generateCertificate)
 // User Routes
 router.get('/fetchTeam', fetchTeam)
 router.get('/fetchAlumni', fetchAlumni)
@@ -19,6 +21,7 @@ router.use(verifyToken)
 router.post('/fetchProfile',fetchProfileRules(), validate, fetchUser)
 router.put('/editDetails', checkAccess('USER','MEMBER'), editProfile)
 router.post('/editProfileImage',checkAccess('MEMBER'), imageUpload.single('image'), editProfileImage)
+
 
 
 router.use(checkAccess('ADMIN'))

@@ -17,4 +17,7 @@ router.use('/form', require('./forms/formRoutes'));
 
 router.use('/certificate', require('./certificate/certificateRoute'));
 
+// Payment Routes
+router.use('/payment', require('./payment/paymentRoute'));
+
 module.exports = router; // Ensure you are exporting the router

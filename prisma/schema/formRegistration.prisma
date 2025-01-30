@@ -1,19 +1,37 @@
+enum PaymentStatusTypes {
+  PENDING
+  COMPLETED
+}
+
 model formRegistration {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  user             user               @relation(fields: [userId], references: [id])
+  userId           String             @map("userId") @db.ObjectId
+  form             form               @relation(fields: [formId], references: [id])
+  formId           String             @map("formId") @db.ObjectId
+  value            Json[]
+  regTeamMemEmails String[]
+  teamSize         Int                @default(1)
+  teamName         String
+  teamCode         String
+  paymentStatus    PaymentStatusTypes @default(PENDING)
+  // paymentTime      DateTime?                   
+  payment          Payment?           @relation
+  paymentId        String?            @unique @db.ObjectId
 
-  user              user     @relation(fields: [userId], references: [id])
-  userId            String   @map("userId") @db.ObjectId
-
-  form              form     @relation(fields: [formId], references: [id])
-  formId            String   @map("formId") @db.ObjectId
-
-  value             Json[]
-  regTeamMemEmails  String[]
-
-  teamSize          Int      @default(1)
-  teamName          String
-  teamCode          String
-
-  @@map("form_registration")
   @@unique([formId, teamCode])
+  @@map("form_registration")
+}
+
+model Payment {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  registration    formRegistration?  @relation(fields: [registrationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  registrationId  String?            @unique @db.ObjectId
+  status          PaymentStatusTypes @default(PENDING)
+  deadline        DateTime
+  razorpayOrderId String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@map("payment")
 }

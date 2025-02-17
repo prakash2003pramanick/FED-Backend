@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+const {ObjectId} = require('mongodb');
 // Initialize Razorpay instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -12,11 +13,15 @@ const razorpay = new Razorpay({
 // Create Razorpay Order
 const createOrder = async (req, res) => {
   try {
-    const { registrationId, amount } = req.body;
-
+    console.log(req.body);
+    const { amount } = req.body;
+    
+    const registrationId = new ObjectId().toString();
     if (!registrationId || !amount) {
       return res.status(400).json({ error: "Missing required fields" });
     }
+
+     
 
     // Create an order in Razorpay
     const order = await razorpay.orders.create({
@@ -37,6 +42,8 @@ const createOrder = async (req, res) => {
     });
 
     res.json({ orderId: order.id });
+
+    // res.json({ success: true, message: "Order created successfully" });
   } catch (error) {
     console.error("Error creating order:", error);
     res.status(500).json({ error: "Failed to create order" });

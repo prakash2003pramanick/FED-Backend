@@ -12,17 +12,20 @@ const razorpay = new Razorpay({
 
 // Create Razorpay Order
 const createOrder = async (req, res) => {
+  console.log("Create Order");
   try {
+    console.log("try test");
     console.log(req.body);
-    const { amount } = req.body;
+    const amount  = req.body.amount;
     
     const registrationId = new ObjectId().toString();
-    if (!registrationId || !amount) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+    // if (!registrationId || !amount) {
+    //   return res.status(400).json({ error: "Missing required fields" });
+    // }
 
      
-
+    console.log("Registration ID: ", registrationId);
+    console.log("Amount: ", amount);
     // Create an order in Razorpay
     const order = await razorpay.orders.create({
       amount: amount * 100, // Convert to paisa

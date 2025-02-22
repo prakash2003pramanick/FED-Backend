@@ -53,7 +53,7 @@ const createOrder = async (req, res) => {
 
     // Save order details in the database
     await prisma.payment.upsert({
-      where: { registrationId: registrationDetails.id},
+      where: { registrationId: registrationDetails.id, status: "PENDING" },
       update: {
         status: "PENDING",
         razorpayOrderId: order.id,
@@ -74,7 +74,13 @@ const createOrder = async (req, res) => {
     // res.json({ success: true, message: "Order created successfully" });
   } catch (error) {
     console.error("Error creating order:", error);
-    res.status(500).json({ error: "Failed to create order" });
+
+    if (error.code === "P2002") {
+      // Unique constraint violation: Payment already exists
+      return res.status(400).json({ error: "Payment already made, contact admin." });
+    }
+
+    return res.status(500).json({ error: "Failed to create order" });
   }
 };
 

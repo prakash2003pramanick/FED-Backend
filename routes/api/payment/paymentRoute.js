@@ -5,7 +5,9 @@ const {
   verifyPayment,
   payLater,
 } = require("../../../controllers/payment/paymentController");
+const { verifyToken } = require("../../../middleware/verifyToken");
 
+router.use(verifyToken)
 // Create Razorpay Order
 router.post("/create-order", createOrder);
 

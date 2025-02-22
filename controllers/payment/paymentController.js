@@ -3,48 +3,73 @@ const crypto = require("crypto");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-const {ObjectId} = require('mongodb');
-// Initialize Razorpay instance
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+const { ObjectId } = require('mongodb');
 
 // Create Razorpay Order
 const createOrder = async (req, res) => {
-  console.log("Create Order");
+
+  // Initialize Razorpay instance
+  const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+
+  // console.log("Create Order");
   try {
-    console.log("try test");
-    console.log(req.body);
-    const amount  = req.body.amount;
-    
-    const registrationId = new ObjectId().toString();
+    // console.log("try test");
+    // console.log("req body ->",req.body);
+    // console.log("req body ->",req.body);
+    // console.log("req header ->",req.headers);
+    // console.log("req user ->",req.user);
+    const amount = req.body.amount;
+
+
+    // get user id
+    // const registrationId = new ObjectId().toString();
     // if (!registrationId || !amount) {
     //   return res.status(400).json({ error: "Missing required fields" });
     // }
 
-     
-    console.log("Registration ID: ", registrationId);
+    const registrationDetails = await prisma.formRegistration.findFirst({
+      where: {
+        userId: req.user.id,
+        formId : req.body.formId
+      }
+    });
+
+    console.log("registrationDetails ->",registrationDetails);
+
+
     console.log("Amount: ", amount);
     // Create an order in Razorpay
     const order = await razorpay.orders.create({
       amount: amount * 100, // Convert to paisa
       currency: "INR",
-      receipt: `order_rcptid_${registrationId}`,
+      receipt: `order_rcptid_${registrationDetails.id}`,
       payment_capture: 1,
     });
 
+    console.log("line 39 passed");
+
     // Save order details in the database
-    await prisma.payment.create({
-      data: {
-        registrationId,
+    await prisma.payment.upsert({
+      where: { registrationId: registrationDetails.id},
+      update: {
         status: "PENDING",
+        razorpayOrderId: order.id,
+      },
+      create: {
+        registrationId: registrationDetails.id,
+        status:
+          "PENDING",
         razorpayOrderId: order.id,
         deadline: new Date(new Date().setDate(new Date().getDate() + 7)), // Example: 7-day deadline
       },
     });
 
-    res.json({ orderId: order.id });
+    console.log("line 52 passed");
+
+    return res.status(200).json({ orderId : order.id , registrationId: registrationDetails.id});
 
     // res.json({ success: true, message: "Order created successfully" });
   } catch (error) {
@@ -56,6 +81,11 @@ const createOrder = async (req, res) => {
 // Verify Payment
 const verifyPayment = async (req, res) => {
   try {
+
+    console.log("req body ->",req.body);
+    console.log("req header ->",req.headers);
+    console.log("req user ->",req.user);
+
     const {
       registrationId,
       razorpay_payment_id,
@@ -69,7 +99,7 @@ const verifyPayment = async (req, res) => {
 
     // Fetch order from DB
     const payment = await prisma.payment.findUnique({
-      where: { razorpayOrderId: razorpay_order_id },
+      where: { registrationId},
     });
 
     if (!payment) {
@@ -88,7 +118,7 @@ const verifyPayment = async (req, res) => {
 
     // Update payment status to COMPLETED
     await prisma.payment.update({
-      where: { razorpayOrderId: razorpay_order_id },
+      where: { registrationId },
       data: { status: "COMPLETED" },
     });
 

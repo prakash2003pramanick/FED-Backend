@@ -25,7 +25,7 @@ model formRegistration {
 
 model Payment {
   id              String             @id @default(auto()) @map("_id") @db.ObjectId
-  registration    formRegistration?  @relation(fields: [registrationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  registration    formRegistration?  @relation(fields: [registrationId], references: [id])
   registrationId  String?            @unique @db.ObjectId
   status          PaymentStatusTypes @default(PENDING)
   deadline        DateTime

@@ -66,8 +66,8 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         }
 
         await validateCurrentForm(form, req.user, sections);
-
         console.log('form validation passed');
+
         const { info } = form;
         const { relatedEvent } = info;
         let teamName = [req.user.email.toUpperCase()];
@@ -117,10 +117,10 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
         if (info.participationType !== "Individual") {
 
-            console.log("related", relatedEventForm?.info?.eventTitle)
+            console.log("related", relatedEventForm.info.eventTitle)
             console.log("eventTitle", info.eventTitle)
             console.log("count", form.formAnalytics[0]?.regUserEmails.length);
-            teamCode = await generateTeamCode(relatedEventForm?.info?.eventTitle, info.eventTitle, form.formAnalytics[0]?.regUserEmails.length);
+            teamCode = await generateTeamCode(relatedEventForm.info.eventTitle, info.eventTitle, form.formAnalytics[0]?.regUserEmails.length);
 
 
             createTeamSection = sections.find(section => section.name === "Create Team");
@@ -176,9 +176,6 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
                     teamCode = teamCodeField.value;
                     regTeamMemEmails = [...teamExists.regTeamMemEmails, req.user.email];
                 }
-                else {
-                    return next(new ApiError(400, "Team Code field is required for Join Team"));
-                }
 
 
                 // sections.user_id = req.user.id;
@@ -195,34 +192,34 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
         console.log("set data ", formTrackerTeamNameList);
         console.log("reg team members ", regTeamMemEmails)
 
-        const paymentSection = sections.find(section => section.name === "Payment Details");
-        const paymentSectionInActualForm = form.sections.find(section => section.name === "Payment Details")
-        if (paymentSectionInActualForm && paymentSection) {
-            console.log("payment section is present in the form");
-            if (req.files?.length > 0) {
-                console.log("files", req.files);
-                const imagePath = req.files[0].path;
-                const result = await uploadImage(imagePath, req.files[0].fieldname || "PaymentScreenshot");
-                console.log(result);
-                sectionsObject.transactionScreenShot = result.secure_url;
+        //const paymentSection = sections.find(section => section.name === "Payment Details");
+        //const paymentSectionInActualForm = form.sections.find(section => section.name === "Payment Details")
+        // if (paymentSectionInActualForm && paymentSection) {
+        //     console.log("payment section is present in the form");
+        //     if (req.files?.length > 0) {
+        //         console.log("files", req.files);
+        //         const imagePath = req.files[0].path;
+        //         const result = await uploadImage(imagePath, req.files[0].fieldname || "PaymentScreenshot");
+        //         console.log(result);
+        //         sectionsObject.transactionScreenShot = result.secure_url;
 
-                const paymentScreenshotField = paymentSection.fields.find(field => field.name === "Payment Screenshot" && field.type === "image");
+        //         const paymentScreenshotField = paymentSection.fields.find(field => field.name === "Payment Screenshot" && field.type === "image");
 
-                if (paymentScreenshotField) {
-                    // Update the value of the "Payment Screenshot" field with the secure URL
-                    paymentScreenshotField.value = result.secure_url;
-                    console.log("Payment Screenshot field updated successfully.");
-                } else {
-                    console.error("Payment Screenshot field not found.");
-                }
+        //         if (paymentScreenshotField) {
+        //             // Update the value of the "Payment Screenshot" field with the secure URL
+        //             paymentScreenshotField.value = result.secure_url;
+        //             console.log("Payment Screenshot field updated successfully.");
+        //         } else {
+        //             console.error("Payment Screenshot field not found.");
+        //         }
 
-            }
-            else {
-                return next(new ApiError(400, "Kindly Attach Payment Screenshot"));
-            }
-        } else if (paymentSectionInActualForm && !paymentSection) {
-            return next(new ApiError(400, "Kindly fill the Payment section"));
-        }
+        //     }
+        //     else {
+        //         return next(new ApiError(400, "Kindly Attach Payment Screenshot"));
+        //     }
+        // } else if (paymentSectionInActualForm && !paymentSection) {
+        //     return next(new ApiError(400, "Kindly fill the Payment section"));
+        // }
 
         console.log(sectionsObject)
 

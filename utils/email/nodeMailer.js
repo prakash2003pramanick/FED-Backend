@@ -1,10 +1,11 @@
-const { primary, secondary, tertiary } = require("../../config/nodeMailer");
+const { primary, secondary, tertiary, mailerSend } = require("../../config/nodeMailer");
 
 function sendMail(to, subject, htmlContent, textContent, attachments = []) {
   const mailDetails = {
-    from: process.env.MAIL_USER,
+    from: `"FED KIIT Compliance" <${process.env.MAIL_USER}>`,
     to,
     subject,
+    replyTo: "fedkiit@gmail.com",
     html: htmlContent,
     text: textContent || htmlContent.replace(/<[^>]+>/g, ""),
     ...(attachments.length > 0 && { attachments }),
@@ -32,6 +33,13 @@ function sendMail(to, subject, htmlContent, textContent, attachments = []) {
           };
           tertiary.sendMail(tertiaryDetails, (err3, info3) => {
             if (err3) {
+              mailerSend.sendMail({ ...mailDetails, from: '"FED KIIT Compliance" <support@fedkiit.com>' }, (err4, info4) => {
+                if (err4) {
+                  console.error("MailerSend email also failed:", err4);
+                } else {
+                  console.log("MailerSend email sent successfully:", info4);
+                }
+              });
               console.error("Tertiary email also failed:", err3);
             }
             else {

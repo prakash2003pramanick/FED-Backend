@@ -27,8 +27,19 @@ const mailTransporterTertiary = nodemailer.createTransport({
     },
 });
 
+const mailTransporterMailerSend = nodemailer.createTransport({
+    host: "smtp.mailersend.net",
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.MAIL_USER_MAILERSEND,
+        pass: process.env.MAIL_PASS_MAILERSEND,
+    },
+});
+
 module.exports = {
     primary: mailTransporterPrimary,
     secondary: mailTransporterSecondary,
-    tertiary: mailTransporterTertiary
+    tertiary: mailTransporterTertiary,
+    mailerSend: mailTransporterMailerSend,
 };

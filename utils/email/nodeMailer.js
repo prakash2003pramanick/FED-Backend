@@ -1,10 +1,6 @@
-const { primary, secondary } = require("../../config/nodeMailer");
+const { primary, secondary, tertiary } = require("../../config/nodeMailer");
 
 function sendMail(to, subject, htmlContent, textContent, attachments = []) {
-  const mailpass1 = process.env.MAIL_PASS;
-  const mailpass2 = process.env.MAIL_PASS_SECONDARY;
-  const mailuser1 = process.env.MAIL_USER;
-  const mailuser2 = process.env.MAIL_USER_SECONDARY;
   const mailDetails = {
     from: process.env.MAIL_USER,
     to,
@@ -27,7 +23,21 @@ function sendMail(to, subject, htmlContent, textContent, attachments = []) {
 
       secondary.sendMail(fallbackDetails, (err2, info2) => {
         if (err2) {
-          console.error("Fallback email also failed:", err2);
+          console.error("Secondary email also failed:", err2);
+
+          // Try tertiary sender
+          const tertiaryDetails = {
+            ...mailDetails,
+            from: process.env.MAIL_USER_TERTIARY,
+          };
+          tertiary.sendMail(tertiaryDetails, (err3, info3) => {
+            if (err3) {
+              console.error("Tertiary email also failed:", err3);
+            }
+            else {
+              console.log("Tertiary email sent successfully:", info3);
+            }
+          });
         } else {
           console.log("Fallback email sent successfully:", info2);
         }

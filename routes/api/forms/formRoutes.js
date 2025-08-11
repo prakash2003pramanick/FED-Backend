@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const formController = require('../../../controllers/forms/formController')
 const registrationController = require('../../../controllers/registration/registrationController');
+const { getTeamDetails } = require('../../../controllers/registration/getTeamDetails');
 const { verifyToken } = require('../../../middleware/verifyToken');
 const { checkAccess } = require('../../../middleware/access/checkAccess');
 const multer = require('multer');
@@ -21,6 +22,12 @@ router.use('/register',
     imageUpload.any(), 
     registrationController.addRegistration
 );
+
+router.get(
+    "/teamDetails/:formId",
+    getTeamDetails
+);
+
 router.get(
     "/getFormAnalytics/:id",
     formController.analytics

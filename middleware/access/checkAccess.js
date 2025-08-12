@@ -5,6 +5,11 @@ const prisma = new PrismaClient();
 const checkAccess = (...requiredAccess) => { 
     return async (req, res, next) => {
         try {
+            console.log("=== checkAccess middleware called ===");
+            console.log("Required access:", requiredAccess);
+            console.log("Request user:", req.user);
+            console.log("User access:", req.user?.access);
+            
             let user;
             if (req.user) {
                 user = req.user;
@@ -40,9 +45,11 @@ const checkAccess = (...requiredAccess) => {
             });
 
             if (hasRequiredAccess) {
+                console.log("Access granted, proceeding...");
                 return next();
             }
 
+            console.log("Access denied. User access:", user.access, "Required:", requiredAccess);
             throw new ApiError(403, 'Unauthorized');
         } catch (error) {
             console.log("Could not pass checkAccess middleware",error);

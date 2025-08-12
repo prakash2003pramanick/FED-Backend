@@ -8,6 +8,11 @@ const expressAsyncHandler = require("express-async-handler");
 //@access          Private (requires authentication)
 const getTeamDetails = expressAsyncHandler(async (req, res, next) => {
     try {
+        console.log("=== getTeamDetails called ===");
+        console.log("Request params:", req.params);
+        console.log("Request user:", req.user);
+        console.log("User email:", req.user?.email);
+        
         const { formId } = req.params;
         const { email } = req.user;
 

@@ -14,9 +14,13 @@ const upload = multer();
 router.get("/getAllForms", formController.getAllForms);
 router.post("/contact", formController.contact);
 
-router.get("/export-attendance/:id", registrationController.exportAttendance);
-
 router.use(verifyToken);
+
+router.get(
+  "/export-attendance/:id",
+  checkAccess("ADMIN"),
+  registrationController.exportAttendance
+);
 
 router.use(
   "/register",

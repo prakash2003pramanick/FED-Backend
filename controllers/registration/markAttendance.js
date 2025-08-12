@@ -2,7 +2,7 @@ const { ApiError } = require("../../utils/error/ApiError");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
-const XLSX = require("xlsx");
+const ExcelJS = require("exceljs");
 
 const getAttendanceCode = async (req, res, next) => {
   try {
@@ -181,18 +181,37 @@ const markAttendance = async (req, res, next) => {
 
 const exportAttendance = async (req, res, next) => {
   try {
-    const { id: formId } = req.params;
+    /*************  ✨ Windsurf Command ⭐  *************/
+    /**
+     * Exports attendance records for a specific form in either JSON or XLSX format.
+     *
+     * @param {Object} req - The request object.
+     * @param {Object} req.params - Parameters from the request URL.
+     * @param {string} req.params.id - The form ID to fetch attendance for.
+     * @param {Object} req.query - Query parameters from the request URL.
+     * @param {string} [req.query.teamCode] - Optional team code to filter attendance records.
+     * @param {string} [req.query.format] - The format of the export ('json' or 'xlsx'). Defaults to 'json'.
+     * @param {Object} res - The response object.
+     * @param {Function} next - The next middleware function.
+     *
+     * @returns {void} - Sends the attendance data in the specified format or an error message.
+     *
+     * @throws {ApiError} - Throws an error if the form ID is missing, no records are found,
+     *                      or an invalid format is specified.
+     */
+
+    /*******  53c09f81-5f5f-4dbd-abc3-c89f49f952d6  *******/ const {
+      id: formId,
+    } = req.params;
     const { teamCode, format } = req.query;
 
     if (!formId) {
       return next(new ApiError(400, "Form ID is required."));
     }
 
-    // Build query
     const whereClause = { formId };
     if (teamCode) whereClause.teamCode = teamCode;
 
-    // Fetch attendance records
     const records = await prisma.attendance.findMany({
       where: whereClause,
     });
@@ -201,49 +220,60 @@ const exportAttendance = async (req, res, next) => {
       return next(new ApiError(404, "No attendance records found."));
     }
 
-    // Handle JSON format
+    // JSON output (unchanged)
     if (!format || format === "json") {
       let grouped;
-
       if (teamCode) {
-        grouped = [
-          {
-            teamCode: teamCode,
-            members: records,
-          },
-        ];
+        grouped = [{ teamCode, members: records }];
       } else {
         grouped = Object.values(
           records.reduce((acc, record) => {
             if (!acc[record.teamCode]) {
-              acc[record.teamCode] = {
-                teamCode: record.teamCode,
-                members: [],
-              };
+              acc[record.teamCode] = { teamCode: record.teamCode, members: [] };
             }
             acc[record.teamCode].members.push(record);
             return acc;
           }, {})
         );
       }
-
       return res.status(200).json(grouped);
     }
 
-    // Handle XLSX format
+    // XLSX output with styling
     if (format === "xlsx") {
-      // Add phoneNumber field placeholder
-      const withPhone = records.map((r) => ({
-        ...r,
-        phoneNumber: "1234",
-      }));
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet("Attendance");
 
-      const worksheet = XLSX.utils.json_to_sheet(withPhone);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+      // Define columns
+      sheet.columns = [
+        { header: "User ID", key: "userId", width: 25 },
+        { header: "Team Name", key: "teamName", width: 20 },
+        { header: "Team Code", key: "teamCode", width: 15 },
+        { header: "Present", key: "isPresent", width: 10 },
+        { header: "Payment Verified", key: "isPaymentVerified", width: 20 },
+        { header: "Phone Number", key: "phoneNumber", width: 15 },
+      ];
 
-      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+      // Add rows + style
+      records.forEach((r) => {
+        const row = sheet.addRow({
+          ...r,
+          phoneNumber: "1234",
+        });
 
+        if (!r.isPresent) {
+          row.eachCell((cell) => {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFFFCCCC" }, // light red
+            };
+          });
+        }
+      });
+
+      // Write buffer
+      const buffer = await workbook.xlsx.writeBuffer();
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="attendance_${formId}.xlsx"`
@@ -252,7 +282,6 @@ const exportAttendance = async (req, res, next) => {
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
-
       return res.send(buffer);
     }
 

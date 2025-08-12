@@ -1,0 +1,160 @@
+const { ApiError } = require("../../utils/error/ApiError");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+const jwt = require("jsonwebtoken");
+
+
+const getAttendanceCode = async (req, res, next) => {
+    try {
+        const { id: formId } = req.params;
+        const { teamCode } = req.query;
+        const { id: userId } = req.user;
+
+
+        if (!formId || !userId) {
+            return next(new ApiError(400, "Form ID or User ID is missing."));
+        }
+
+
+        let formRegistrationDetails = null;
+        // Fetching event details from the database
+        if (teamCode) {
+            formRegistrationDetails = await prisma.formRegistration.findFirst({
+                where: {
+                    formId,
+                    teamCode,
+                }
+            });
+
+            console.log("formRegistrationDetails:", formRegistrationDetails);
+        }
+        else {
+            const allFormRegistrationDetails = await prisma.formRegistration.findMany({
+                where: {
+                    formId,
+                }
+            });
+
+            console.log("allFormRegistrationDetails:", allFormRegistrationDetails);
+
+
+            formRegistrationDetails = allFormRegistrationDetails.find(registration => registration.value.some(value => value.user_id === userId));
+
+            console.log("Filtered formRegistrationDetails:", formRegistrationDetails);
+
+
+            if (!formRegistrationDetails) {
+                return next(new ApiError(404, "Form registration not found for the user."));
+            }
+            formRegistrationDetails = {
+                ...formRegistrationDetails
+            };
+        }
+
+        // If no registration details found, return an error
+        if (!formRegistrationDetails) {
+            return next(new ApiError(404, "Form registration not found."));
+        }
+
+        const info = formRegistrationDetails.value.find(value => value.user_id === userId);
+
+        // Put in attendance db
+        const attendanceData = {
+            formId: formId,
+            userId: userId,
+            teamName: formRegistrationDetails.teamName,
+            teamCode: formRegistrationDetails.teamCode,
+            info,
+        };
+
+        // Create or update attendance record
+        const attendanceDetails = await prisma.attendance.upsert({
+            where: {
+                formId_userId_teamCode: {
+                    formId: attendanceData.formId,
+                    userId: attendanceData.userId,
+                    teamCode: attendanceData.teamCode,
+                }
+            },
+            create: attendanceData,
+            update: attendanceData,
+        })
+
+
+        // Create JWT token for QR code that expires in 20 minutes
+        const token = jwt.sign({
+            attendanceToken: attendanceDetails.id,
+        }, process.env.JWT_SECRET, { expiresIn: '20m' });
+
+        // Return JWT token
+        return res.status(200).json({
+            message: "Validation id generated successfully.",
+            attendanceToken: token,
+        });
+    } catch (error) {
+        console.error('Error generating QR link:', error);
+        return next(new ApiError(error.statusCode || 500, error.message || "Internal Server Error", error));
+
+
+    }
+};
+
+
+const markAttendance = async (req, res, next) => {
+    const { token } = req.body;
+
+
+    if (!token) {
+        return next(new ApiError(400, "Attendance token is required."));
+    }
+    try {
+        // Verify the JWT token
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            return next(new ApiError(401, "Invalid or expired attendance token."));
+        }
+        const attendanceId = decoded.attendanceToken;
+
+        if (!attendanceId) {
+            return next(new ApiError(400, "Attendance ID is missing in the token."));
+        }
+
+        // Check if the attendance ID is valid
+        const attendanceRecord = await prisma.attendance.findUnique({
+            where: { id: attendanceId },
+        });
+
+        // Check if the attendance is already marked
+        if (attendanceRecord?.isPresent) {
+            return next(new ApiError(400, "Attendance already marked."));
+        }
+
+        // Check if payment is verified
+        // if (!attendanceRecord?.isPaymentVerified) {
+        //   return next(new ApiError(400, "Payment not verified for this attendance."));
+        // }
+
+
+        // Mark attendance as present
+        const updatedAttendance = await prisma.attendance.update({
+            where: { id: attendanceId },
+            data: { isPresent: true },
+        });
+
+
+        res.status(200).json({ message: "Attendance marked successfully.", attendance: updatedAttendance });
+
+
+    } catch (error) {
+        console.error('Error marking attendance:', error);
+        return next(new ApiError(error.statusCode || 500, error.message || "Internal Server Error", error));
+    }
+}
+
+
+module.exports = {
+    getAttendanceCode,
+    markAttendance
+};

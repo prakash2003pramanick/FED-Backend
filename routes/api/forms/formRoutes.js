@@ -1,47 +1,47 @@
 const express = require("express");
 const router = express.Router();
-const formController = require('../../../controllers/forms/formController')
-const registrationController = require('../../../controllers/registration/registrationController');
-const { verifyToken } = require('../../../middleware/verifyToken');
-const { checkAccess } = require('../../../middleware/access/checkAccess');
-const multer = require('multer');
-const { imageUpload } = require('../../../middleware/upload');
+const formController = require("../../../controllers/forms/formController");
+const registrationController = require("../../../controllers/registration/registrationController");
+const { verifyToken } = require("../../../middleware/verifyToken");
+const { checkAccess } = require("../../../middleware/access/checkAccess");
+const multer = require("multer");
+const { imageUpload } = require("../../../middleware/upload");
 const upload = multer();
 
 // Add validations
 // Define your form routes here
 
-router.get('/getAllForms', formController.getAllForms)
-router.post('/contact', formController.contact);
+router.get("/getAllForms", formController.getAllForms);
+router.post("/contact", formController.contact);
+
+router.get("/export-attendance/:id", registrationController.exportAttendance);
 
 router.use(verifyToken);
 
-router.use('/register',
-    checkAccess('USER'),
-    imageUpload.any(),
-    registrationController.addRegistration
+router.use(
+  "/register",
+  checkAccess("USER"),
+  imageUpload.any(),
+  registrationController.addRegistration
 );
-router.get(
-    "/getFormAnalytics/:id",
-    formController.analytics
-)
+router.get("/getFormAnalytics/:id", formController.analytics);
 
 router.get(
-    "/attendanceCode/:id",
-    checkAccess("USER"),
-    registrationController.getAttendanceCode
+  "/attendanceCode/:id",
+  checkAccess("USER"),
+  registrationController.getAttendanceCode
 );
 
 router.post(
-    "/markAttendance",
-    // checkAccess([
-    //     "SENIOR_EXECUTIVE_TECHNICAL",
-    //     "SENIOR_EXECUTIVE_CREATIVE",
-    //     "SENIOR_EXECUTIVE_MARKETING",
-    //     "SENIOR_EXECUTIVE_OPERATIONS",
-    //     "SENIOR_EXECUTIVE_PR_AND_FINANCE",
-    //     "SENIOR_EXECUTIVE_HUMAN_RESOURCE"]),
-    registrationController.markAttendance
+  "/markAttendance",
+  // checkAccess([
+  //     "SENIOR_EXECUTIVE_TECHNICAL",
+  //     "SENIOR_EXECUTIVE_CREATIVE",
+  //     "SENIOR_EXECUTIVE_MARKETING",
+  //     "SENIOR_EXECUTIVE_OPERATIONS",
+  //     "SENIOR_EXECUTIVE_PR_AND_FINANCE",
+  //     "SENIOR_EXECUTIVE_HUMAN_RESOURCE"]),
+  registrationController.markAttendance
 );
 
 // router.get(
@@ -59,21 +59,21 @@ router.post(
 router.use(checkAccess("ADMIN"));
 
 router.post(
-    "/addForm",
-    imageUpload.fields([
-        { name: "eventImg", maxCount: 1 },
-        { name: "media", maxCount: 1 },
-    ]),
-    formController.addForm
+  "/addForm",
+  imageUpload.fields([
+    { name: "eventImg", maxCount: 1 },
+    { name: "media", maxCount: 1 },
+  ]),
+  formController.addForm
 );
 router.delete("/deleteForm/:id", formController.deleteForm);
 router.put(
-    "/editForm/:id",
-    imageUpload.fields([
-        { name: "eventImg", maxCount: 1 },
-        { name: "media", maxCount: 1 },
-    ]),
-    formController.editForm
+  "/editForm/:id",
+  imageUpload.fields([
+    { name: "eventImg", maxCount: 1 },
+    { name: "media", maxCount: 1 },
+  ]),
+  formController.editForm
 );
 
 router.get("/download/:id", registrationController.downloadRegistration);

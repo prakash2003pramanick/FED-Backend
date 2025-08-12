@@ -32,6 +32,18 @@ router.get(
     registrationController.getAttendanceCode
 );
 
+router.post(
+    "/markAttendance",
+    // checkAccess([
+    //     "SENIOR_EXECUTIVE_TECHNICAL",
+    //     "SENIOR_EXECUTIVE_CREATIVE",
+    //     "SENIOR_EXECUTIVE_MARKETING",
+    //     "SENIOR_EXECUTIVE_OPERATIONS",
+    //     "SENIOR_EXECUTIVE_PR_AND_FINANCE",
+    //     "SENIOR_EXECUTIVE_HUMAN_RESOURCE"]),
+    registrationController.markAttendance
+);
+
 // router.get(
 //   "/registrationCount",
 //   checkAccess("MEMBER"),

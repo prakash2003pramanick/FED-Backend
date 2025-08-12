@@ -101,7 +101,7 @@ const getAttendanceCode = async (req, res, next) => {
 
 
 const markAttendance = async (req, res, next) => {
-    const { token } = req.body;
+    const { formId, token } = req.body;
 
 
     if (!token) {
@@ -113,7 +113,7 @@ const markAttendance = async (req, res, next) => {
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET);
         } catch (err) {
-            return next(new ApiError(401, "Invalid or expired attendance token."));
+            return next(new ApiError(401, "Invalid or expired QR."));
         }
         const attendanceId = decoded.attendanceToken;
 
@@ -125,6 +125,16 @@ const markAttendance = async (req, res, next) => {
         const attendanceRecord = await prisma.attendance.findUnique({
             where: { id: attendanceId },
         });
+
+        // If no attendance record found, return an error
+        if (!attendanceRecord) {
+            return next(new ApiError(404, "Attendance record not found."));
+        }
+
+        // Check if it belongs to the correct form
+        if (attendanceRecord.formId !== formId) {
+            return next(new ApiError(400, "QR does not belong to the specified form."));
+        }
 
         // Check if the attendance is already marked
         if (attendanceRecord?.isPresent) {

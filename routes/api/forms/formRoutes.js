@@ -16,15 +16,21 @@ router.post('/contact', formController.contact);
 
 router.use(verifyToken);
 
-router.use('/register', 
-    checkAccess('USER'), 
-    imageUpload.any(), 
+router.use('/register',
+    checkAccess('USER'),
+    imageUpload.any(),
     registrationController.addRegistration
 );
 router.get(
     "/getFormAnalytics/:id",
     formController.analytics
 )
+
+router.get(
+    "/attendanceCode/:id",
+    checkAccess("USER"),
+    registrationController.getAttendanceCode
+);
 
 // router.get(
 //   "/registrationCount",

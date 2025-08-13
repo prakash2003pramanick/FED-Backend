@@ -17,15 +17,18 @@ router.post('/contact', formController.contact);
 
 router.use(verifyToken);
 
+
+
+router.get(
+    "/teamDetails/:formId",
+    checkAccess('USER'),
+    getTeamDetails
+);
+
 router.use('/register', 
     checkAccess('USER'), 
     imageUpload.any(), 
     registrationController.addRegistration
-);
-
-router.get(
-    "/teamDetails/:formId",
-    getTeamDetails
 );
 
 router.get(

@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const checkAccess = (...requiredAccess) => { 
     return async (req, res, next) => {
         try {
+            
             let user;
             if (req.user) {
                 user = req.user;

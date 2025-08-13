@@ -4,6 +4,7 @@ const { getISTDateTime } = require("../../utils/datetime/getIST");
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
 const ExcelJS = require("exceljs");
+const formatIST = require("../../utils/datetime/formatIST.js");
 
 const getAttendanceCode = async (req, res, next) => {
   try {
@@ -242,21 +243,14 @@ const exportAttendance = async (req, res, next) => {
         return acc;
       }, {});
 
-      // Iterate each team and add rows
       Object.keys(grouped).forEach((teamCode) => {
         grouped[teamCode].forEach((r) => {
-          const istTime = r.markedAt
-            ? new Date(r.markedAt).toLocaleString("en-IN", {
-                timeZone: "Asia/Kolkata",
-                dateStyle: "medium",
-                timeStyle: "short",
-              })
-            : "";
+          const readableTime = r.markedAt ? formatIST(r.markedAt) : "";
 
           const row = sheet.addRow({
             ...r,
             phoneNumber: "1234",
-            markedAtIST: istTime,
+            markedAtIST: readableTime,
           });
 
           if (!r.isPresent) {

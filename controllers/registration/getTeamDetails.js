@@ -37,11 +37,6 @@ const getTeamDetails = expressAsyncHandler(async (req, res, next) => {
             }
         });
 
-        if (!teamRegistration) {
-            return next(new ApiError(404, "You are not registered for this event or it's not a team event"));
-        }
-
-        // Get user details for all team members
         const teamMembers = await prisma.user.findMany({
             where: {
                 email: {
@@ -58,6 +53,9 @@ const getTeamDetails = expressAsyncHandler(async (req, res, next) => {
                 year: true
             }
         });
+
+
+
 
         // Check if this is a team event
         const isTeamEvent = teamRegistration.form.info.participationType === "Team";

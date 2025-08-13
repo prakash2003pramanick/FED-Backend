@@ -44,7 +44,7 @@ const getAttendanceCode = async (req, res, next) => {
 
 
             if (!formRegistrationDetails) {
-                return next(new ApiError(404, "Form registration not found for the user."));
+                return next(new ApiError(404, "User has not registered for this event."));
             }
             formRegistrationDetails = {
                 ...formRegistrationDetails

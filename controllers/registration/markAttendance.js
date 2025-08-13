@@ -181,28 +181,7 @@ const markAttendance = async (req, res, next) => {
 
 const exportAttendance = async (req, res, next) => {
   try {
-    /*************  ✨ Windsurf Command ⭐  *************/
-    /**
-     * Exports attendance records for a specific form in either JSON or XLSX format.
-     *
-     * @param {Object} req - The request object.
-     * @param {Object} req.params - Parameters from the request URL.
-     * @param {string} req.params.id - The form ID to fetch attendance for.
-     * @param {Object} req.query - Query parameters from the request URL.
-     * @param {string} [req.query.teamCode] - Optional team code to filter attendance records.
-     * @param {string} [req.query.format] - The format of the export ('json' or 'xlsx'). Defaults to 'json'.
-     * @param {Object} res - The response object.
-     * @param {Function} next - The next middleware function.
-     *
-     * @returns {void} - Sends the attendance data in the specified format or an error message.
-     *
-     * @throws {ApiError} - Throws an error if the form ID is missing, no records are found,
-     *                      or an invalid format is specified.
-     */
-
-    /*******  53c09f81-5f5f-4dbd-abc3-c89f49f952d6  *******/ const {
-      id: formId,
-    } = req.params;
+    const { id: formId } = req.params;
     const { teamCode, format } = req.query;
 
     if (!formId) {
@@ -254,22 +233,34 @@ const exportAttendance = async (req, res, next) => {
         { header: "Phone Number", key: "phoneNumber", width: 15 },
       ];
 
-      // Add rows + style
-      records.forEach((r) => {
-        const row = sheet.addRow({
-          ...r,
-          phoneNumber: "1234",
+      // Group by teamCode
+      const grouped = records.reduce((acc, r) => {
+        if (!acc[r.teamCode]) acc[r.teamCode] = [];
+        acc[r.teamCode].push(r);
+        return acc;
+      }, {});
+
+      // Iterate each team and add rows
+      Object.keys(grouped).forEach((teamCode) => {
+        grouped[teamCode].forEach((r) => {
+          const row = sheet.addRow({
+            ...r,
+            phoneNumber: "1234",
+          });
+
+          if (!r.isPresent) {
+            row.eachCell((cell) => {
+              cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFFFCCCC" }, // light red
+              };
+            });
+          }
         });
 
-        if (!r.isPresent) {
-          row.eachCell((cell) => {
-            cell.fill = {
-              type: "pattern",
-              pattern: "solid",
-              fgColor: { argb: "FFFFCCCC" }, // light red
-            };
-          });
-        }
+        // Add a blank row for separation
+        sheet.addRow({});
       });
 
       // Write buffer

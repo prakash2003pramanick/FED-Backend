@@ -15,13 +15,6 @@ router.use('/user', require('./user/userRoutes'));
 // Event routes 
 router.use('/form', require('./forms/formRoutes'));
 
-// Debug middleware to log all requests
-router.use('*', (req, res, next) => {
-    console.log(`[DEBUG] Request to: ${req.method} ${req.originalUrl}`);
-    console.log(`[DEBUG] Request headers:`, req.headers);
-    next();
-});
-
 router.use('/certificate', require('./certificate/certificateRoute'));
 
 router.use('/blog', require('./blog'));

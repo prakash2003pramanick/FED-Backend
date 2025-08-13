@@ -17,35 +17,7 @@ router.post('/contact', formController.contact);
 
 router.use(verifyToken);
 
-// Test route to verify authentication is working
-router.get("/test-auth", (req, res) => {
-    console.log("=== Test auth route hit ===");
-    console.log("Request user:", req.user);
-    res.json({ 
-        success: true, 
-        message: "Authentication working", 
-        user: req.user 
-    });
-});
 
-// Debug route to see what's happening
-router.get("/debug-routes", (req, res) => {
-    console.log("=== Debug routes hit ===");
-    console.log("Request method:", req.method);
-    console.log("Request URL:", req.url);
-    console.log("Request original URL:", req.originalUrl);
-    console.log("Request params:", req.params);
-    console.log("Request user:", req.user);
-    res.json({ 
-        success: true, 
-        message: "Debug route hit",
-        method: req.method,
-        url: req.url,
-        originalUrl: req.originalUrl,
-        params: req.params,
-        user: req.user
-    });
-});
 
 router.get(
     "/teamDetails/:formId",

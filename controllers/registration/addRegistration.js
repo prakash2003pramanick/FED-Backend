@@ -311,17 +311,14 @@ const addRegistration = expressAsyncHandler(async (req, res, next) => {
 
       // const updatedUser = await updateUser({ email: req.user.email }, { regForm: _id });
 
-      // Step 2 : UPDATE THE USER
-      const updatedUser = await prisma.user.update({
-        where: {
-          email: req.user.email,
-        },
-        data: {
-          regForm: {
-            push: _id,
-          },
-        },
-      });
+      // console.log("related", relatedEventForm.info.eventTitle)
+      // console.log("eventTitle", info.eventTitle)
+      // console.log("count", form.formAnalytics[0]?.regUserEmails.length);
+      teamCode = await generateTeamCode(
+        relatedEventForm?.info.eventTitle,
+        info.eventTitle,
+        form.formAnalytics[0]?.regUserEmails.length
+      );
 
       // Step 3 : UPDATE FORM ANALYTICS
       const updateFormRegistrationList =

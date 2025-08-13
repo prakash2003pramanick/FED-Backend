@@ -1,8 +1,10 @@
 const { ApiError } = require("../../utils/error/ApiError");
 const { PrismaClient } = require("@prisma/client");
+const { getISTDateTime } = require("../../utils/datetime/getIST");
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
 const ExcelJS = require("exceljs");
+const formatIST = require("../../utils/datetime/formatIST.js");
 
 const getAttendanceCode = async (req, res, next) => {
   try {
@@ -160,7 +162,7 @@ const markAttendance = async (req, res, next) => {
     // Mark attendance as present
     const updatedAttendance = await prisma.attendance.update({
       where: { id: attendanceId },
-      data: { isPresent: true },
+      data: { isPresent: true, markedAt: getISTDateTime() },
     });
 
     res.status(200).json({
@@ -231,6 +233,7 @@ const exportAttendance = async (req, res, next) => {
         { header: "Present", key: "isPresent", width: 10 },
         { header: "Payment Verified", key: "isPaymentVerified", width: 20 },
         { header: "Phone Number", key: "phoneNumber", width: 15 },
+        { header: "Marked At (IST)", key: "markedAtIST", width: 25 },
       ];
 
       // Group by teamCode
@@ -240,12 +243,14 @@ const exportAttendance = async (req, res, next) => {
         return acc;
       }, {});
 
-      // Iterate each team and add rows
       Object.keys(grouped).forEach((teamCode) => {
         grouped[teamCode].forEach((r) => {
+          const readableTime = r.markedAt ? formatIST(r.markedAt) : "";
+
           const row = sheet.addRow({
             ...r,
             phoneNumber: "1234",
+            markedAtIST: readableTime,
           });
 
           if (!r.isPresent) {

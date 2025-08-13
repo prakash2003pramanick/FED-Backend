@@ -1,5 +1,6 @@
 const { ApiError } = require("../../utils/error/ApiError");
 const { PrismaClient } = require("@prisma/client");
+const { getISTDateTime } = require("../../utils/datetime/getIST");
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
 const ExcelJS = require("exceljs");
@@ -160,7 +161,7 @@ const markAttendance = async (req, res, next) => {
     // Mark attendance as present
     const updatedAttendance = await prisma.attendance.update({
       where: { id: attendanceId },
-      data: { isPresent: true },
+      data: { isPresent: true, markedAt: getISTDateTime() },
     });
 
     res.status(200).json({

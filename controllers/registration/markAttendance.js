@@ -232,6 +232,7 @@ const exportAttendance = async (req, res, next) => {
         { header: "Present", key: "isPresent", width: 10 },
         { header: "Payment Verified", key: "isPaymentVerified", width: 20 },
         { header: "Phone Number", key: "phoneNumber", width: 15 },
+        { header: "Marked At (IST)", key: "markedAtIST", width: 25 },
       ];
 
       // Group by teamCode
@@ -244,9 +245,18 @@ const exportAttendance = async (req, res, next) => {
       // Iterate each team and add rows
       Object.keys(grouped).forEach((teamCode) => {
         grouped[teamCode].forEach((r) => {
+          const istTime = r.markedAt
+            ? new Date(r.markedAt).toLocaleString("en-IN", {
+                timeZone: "Asia/Kolkata",
+                dateStyle: "medium",
+                timeStyle: "short",
+              })
+            : "";
+
           const row = sheet.addRow({
             ...r,
             phoneNumber: "1234",
+            markedAtIST: istTime,
           });
 
           if (!r.isPresent) {

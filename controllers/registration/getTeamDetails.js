@@ -5,7 +5,7 @@ const expressAsyncHandler = require("express-async-handler");
 
 //@description     Get team details for a user in a specific form
 //@route           GET /api/form/teamDetails/:formId
-//@access          Private (requires authentication)
+//@access          Private (requires user to login)
 const getTeamDetails = expressAsyncHandler(async (req, res, next) => {
     try {
         const { formId } = req.params;
